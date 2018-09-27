@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
-  //Create a new vertext shader, attach source code, compile it and check for errors.
+  //Create a new vertex shader, attach source code, compile it and check for errors.
   GLuint vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShaderId, 1, &vertexShaderSrc, NULL);
   glCompileShader(vertexShaderId);
@@ -113,8 +113,30 @@ int main(int argc, char *argv[])
 	  throw std::exception();
   }
 
+  //Create new shader program and attach our shader objects
+  GLuint programId = glCreateProgram();
+  glAttachShader(programId, vertexShaderId);
+  glAttachShader(programId, fragmentShaderId);
+
+  //Ensure the VAO "position" attribute stream gets set as the first position
+  //during the link.
+  glBindAttribLocation(programId, 0, "in_Position");
+
+  //Perform the link and check for failure
+  glLinkProgram(programId);
+  glGetProgramiv(programId, GL_LINK_STATUS, &success);
+
+  if (!success)
+  {
+	  throw std::exception();
+  }
+
   //Detatch and destroy the shader objects. These are no longer needed
   //because we now have a complete shader program
+  glDetachShader(programId, vertexShaderId);
+  glDeleteShader(vertexShaderId);
+  glDetachShader(programId, fragmentShaderId);
+  glDeleteShader(fragmentShaderId);
   
   bool quit = false;
 
@@ -131,6 +153,18 @@ int main(int argc, char *argv[])
 
 	  glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	  glClear(GL_COLOR_BUFFER_BIT);
+
+	  //Instruct OpenGL to use our shader program and our VAO
+	  glUseProgram(programId);
+	  glBindVertexArray(vaoId);
+
+	  //Draw 3 vertices
+	  glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	  //Reset the state
+	  glBindVertexArray(0);
+	  glUseProgram(0);
+
 	  SDL_GL_SwapWindow(window);
     }
   }
