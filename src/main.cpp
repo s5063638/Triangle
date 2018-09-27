@@ -7,10 +7,16 @@
 #define WINDOW_HEIGHT 480
 
 //Define triangle points
-const GLfloat positions[] = {
-	0.0f, 0.5f, 0.0f,
+const GLfloat positionsOne[] = {
+	-0.5f, 0.5f, 0.0f,
 	-0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f
+	0.5f, -0.5f, 0.0f,
+};
+
+const GLfloat positionsTwo[] = {
+	0.5f, 0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f,
+	-0.5f, -0.5f, 0.0f,
 };
 
 const GLchar *vertexShaderSrc =
@@ -24,7 +30,7 @@ const GLchar *vertexShaderSrc =
 const GLchar *fragmentShaderSrc =
 	"void main()                         "\
 	"{					                 "\
-	"	gl_FragColor = vec4(0, 0, 1, 1); "\
+	"	gl_FragColor = vec4(0, 1, 1, 1); "\
 	"}									 ";
 
 int main(int argc, char *argv[])
@@ -48,23 +54,36 @@ int main(int argc, char *argv[])
 	  throw std::exception();
   }
 
-  GLuint positionsVboId = 0;
+  GLuint positionsOneVboId = 0;
+  GLuint positionsTwoVboId = 0;
 
   //Create a new VBO on the GPU and bind it
-  glGenBuffers(1, &positionsVboId);
+  glGenBuffers(1, &positionsOneVboId);
 
-  if (!positionsVboId)
+  if (!positionsOneVboId)
   {
 	  throw std::exception();
   }
 
-  glBindBuffer(GL_ARRAY_BUFFER, positionsVboId);
+  glBindBuffer(GL_ARRAY_BUFFER, positionsOneVboId);
 
   //Upload a copy of the data from memory into the new VBO
-  glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(positionsOne), positionsOne, GL_STATIC_DRAW);
 
   //Reset the state
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+  //The same for the second buffer
+  glGenBuffers(1, &positionsTwoVboId);
+  
+  if (!positionsTwoVboId)
+  {
+	  throw std::exception();
+  }
+
+  glBindBuffer(GL_ARRAY_BUFFER, positionsTwoVboId);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(positionsTwo), positionsTwo, GL_STATIC_DRAW);
 
   GLuint vaoId = 0;
 
@@ -79,7 +98,7 @@ int main(int argc, char *argv[])
   glBindVertexArray(vaoId);
 
   //Bind the position VBO, assign it to the position 0 on the bound VAO and flag it to be used
-  glBindBuffer(GL_ARRAY_BUFFER, positionsVboId);
+  glBindBuffer(GL_ARRAY_BUFFER, positionsOneVboId);
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void *)0);
 
@@ -160,7 +179,7 @@ int main(int argc, char *argv[])
 
 	  //Draw 3 vertices
 	  glDrawArrays(GL_TRIANGLES, 0, 3);
-
+	  glDrawArrays(GL_TRIANGLES, 3, 6);
 	  //Reset the state
 	  glBindVertexArray(0);
 	  glUseProgram(0);
