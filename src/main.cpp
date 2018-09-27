@@ -21,6 +21,12 @@ const GLchar *vertexShaderSrc =
 	"	gl_Position = vec4(in_Position, 1.0); "\
 	"}                                        ";
 
+const GLchar *fragmentShaderSrc =
+	"void main()                         "\
+	"{					                 "\
+	"	gl_FragColor = vec4(0, 0, 1, 1); "\
+	"}									 ";
+
 int main(int argc, char *argv[])
 {
   if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -95,6 +101,21 @@ int main(int argc, char *argv[])
 	  throw std::exception();
   }
 
+  //Create a new fragment shader, attach source code, compile it and
+  //check for errors
+  GLuint fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragmentShaderId, 1, &fragmentShaderSrc, NULL);
+  glCompileShader(fragmentShaderId);
+  glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &success);
+
+  if (!success)
+  {
+	  throw std::exception();
+  }
+
+  //Detatch and destroy the shader objects. These are no longer needed
+  //because we now have a complete shader program
+  
   bool quit = false;
 
   while(!quit)
