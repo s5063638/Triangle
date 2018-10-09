@@ -3,6 +3,10 @@
 #include <exception>
 #include <GL/glew.h>
 
+#include "VertexBuffer.h"
+#include "VertexArray.h"
+#include "ShaderProgram.h"
+
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
@@ -60,23 +64,15 @@ int main(int argc, char *argv[])
 	  throw std::exception();
   }
 
-  GLuint positionsVboId = 0;
+  VertexBuffer* positions = new VertexBuffer();
+  positions->Add(glm::vec3(-0.5f, 0.5f, 0.0f));
+  positions->Add(glm::vec3(-0.5f, -0.5f, 0.0f));
+  positions->Add(glm::vec3(0.5f, -0.5f, 0.0f));
 
-  //Create a new VBO on the GPU and bind it
-  glGenBuffers(1, &positionsVboId);
-
-  if (!positionsVboId)
-  {
-	  throw std::exception();
-  }
-
-  glBindBuffer(GL_ARRAY_BUFFER, positionsVboId);
-
-  //Upload a copy of the data from memory into the new VBO
-  glBufferData(GL_ARRAY_BUFFER, sizeof(positionsOne), positionsOne, GL_STATIC_DRAW);
-
-  //Reset the state
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  VertexBuffer* colors = new VertexBuffer();
+  colors->Add(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  colors->Add(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+  colors->Add(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
   GLuint vaoId = 0;
 
@@ -100,29 +96,6 @@ int main(int argc, char *argv[])
   //Reset the state
   glBindBuffer(GL_ARRAY_BUFFER, 0);
  
-
-  //Create a colors VBO on the GPU and bind it
-  GLuint colorsVboId = 0;
-
-  glGenBuffers(1, &colorsVboId);
-
-  if (!colorsVboId)
-  {
-	  throw std::exception();
-  }
-
-  glBindBuffer(GL_ARRAY_BUFFER, colorsVboId);
-
-  //Upload a copy of the data from memory into the new VBO
-  glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-
-  //Bind the color VBO, assign it to position 1 on the bound VAO
-  //and flag it to be used
-  glBindBuffer(GL_ARRAY_BUFFER, colorsVboId);
-  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(1);
-
-  glBindVertexArray(0);
   //Create a new vertex shader, attach source code, compile it and check for errors.
   GLuint vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShaderId, 1, &vertexShaderSrc, NULL);
