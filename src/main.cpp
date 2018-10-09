@@ -8,30 +8,36 @@
 
 //Define triangle points
 const GLfloat positionsOne[] = {
+	0.0f, -0.5f, 0.0f,
 	-0.5f, 0.5f, 0.0f,
-	-0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
+	0.5f, 0.5f, 0.0f,
 };
 
-const GLfloat positionsTwo[] = {
-	0.5f, 0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	-0.5f, -0.5f, 0.0f,
+const GLfloat colors[] = {
+	0.4f, 0.0f, 0.4, 1.0f,
+	0.9f, 0.7f, 1.0f, 1.0f,
+	0.7f, 0.2f, 0.9f, 1.0f
 };
 
 const GLchar *vertexShaderSrc =
-	"attribute vec3 in_Position;              "\
-	"                                         "\
-	"void main()                              "\
-	"{                                        "\
+	"attribute vec3 in_Position; "\
+	"attribute vec4 in_Color; "\
+	""\
+	"varying vec4 ex_Color; "\
+	""\
+	"void main() "\
+	"{ "\
 	"	gl_Position = vec4(in_Position, 1.0); "\
-	"}                                        ";
+	"	ex_Color = in_Color; "\
+	"} ";
 
 const GLchar *fragmentShaderSrc =
-	"void main()                         "\
-	"{					                 "\
-	"	gl_FragColor = vec4(0, 1, 1, 1); "\
-	"}									 ";
+"varying vec4 ex_Color; "\
+"void main() "\
+"{ "\
+"	gl_FragColor = ex_Color; "\
+"} "\
+"";
 
 int main(int argc, char *argv[])
 {
@@ -54,36 +60,23 @@ int main(int argc, char *argv[])
 	  throw std::exception();
   }
 
-  GLuint positionsOneVboId = 0;
-  GLuint positionsTwoVboId = 0;
+  GLuint positionsVboId = 0;
 
   //Create a new VBO on the GPU and bind it
-  glGenBuffers(1, &positionsOneVboId);
+  glGenBuffers(1, &positionsVboId);
 
-  if (!positionsOneVboId)
+  if (!positionsVboId)
   {
 	  throw std::exception();
   }
 
-  glBindBuffer(GL_ARRAY_BUFFER, positionsOneVboId);
+  glBindBuffer(GL_ARRAY_BUFFER, positionsVboId);
 
   //Upload a copy of the data from memory into the new VBO
   glBufferData(GL_ARRAY_BUFFER, sizeof(positionsOne), positionsOne, GL_STATIC_DRAW);
 
   //Reset the state
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
-  //The same for the second buffer
-  glGenBuffers(1, &positionsTwoVboId);
-  
-  if (!positionsTwoVboId)
-  {
-	  throw std::exception();
-  }
-
-  glBindBuffer(GL_ARRAY_BUFFER, positionsTwoVboId);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(positionsTwo), positionsTwo, GL_STATIC_DRAW);
 
   GLuint vaoId = 0;
 
@@ -98,7 +91,7 @@ int main(int argc, char *argv[])
   glBindVertexArray(vaoId);
 
   //Bind the position VBO, assign it to the position 0 on the bound VAO and flag it to be used
-  glBindBuffer(GL_ARRAY_BUFFER, positionsOneVboId);
+  glBindBuffer(GL_ARRAY_BUFFER, positionsVboId);
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void *)0);
 
@@ -106,8 +99,30 @@ int main(int argc, char *argv[])
 
   //Reset the state
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+ 
 
+  //Create a colors VBO on the GPU and bind it
+  GLuint colorsVboId = 0;
+
+  glGenBuffers(1, &colorsVboId);
+
+  if (!colorsVboId)
+  {
+	  throw std::exception();
+  }
+
+  glBindBuffer(GL_ARRAY_BUFFER, colorsVboId);
+
+  //Upload a copy of the data from memory into the new VBO
+  glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+
+  //Bind the color VBO, assign it to position 1 on the bound VAO
+  //and flag it to be used
+  glBindBuffer(GL_ARRAY_BUFFER, colorsVboId);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(1);
+
+  glBindVertexArray(0);
   //Create a new vertex shader, attach source code, compile it and check for errors.
   GLuint vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShaderId, 1, &vertexShaderSrc, NULL);
@@ -140,6 +155,7 @@ int main(int argc, char *argv[])
   //Ensure the VAO "position" attribute stream gets set as the first position
   //during the link.
   glBindAttribLocation(programId, 0, "in_Position");
+  glBindAttribLocation(programId, 1, "in_Color");
 
   //Perform the link and check for failure
   glLinkProgram(programId);
@@ -149,6 +165,14 @@ int main(int argc, char *argv[])
   {
 	  throw std::exception();
   }
+
+  //Uniform Stuff
+  //GLint colorUniformId = glGetUniformLocation(programId, "in_Color");
+
+  //if (colorUniformId == -1)
+  //{
+	 // throw std::exception();
+  //}
 
   //Detatch and destroy the shader objects. These are no longer needed
   //because we now have a complete shader program
@@ -170,16 +194,17 @@ int main(int argc, char *argv[])
         quit = true;
       }
 
-	  glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	  glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 	  glClear(GL_COLOR_BUFFER_BIT);
 
 	  //Instruct OpenGL to use our shader program and our VAO
 	  glUseProgram(programId);
+	  //glUniform4f(colorUniformId, 0, 1, 0, 1); //Set color from uniform
 	  glBindVertexArray(vaoId);
 
 	  //Draw 3 vertices
 	  glDrawArrays(GL_TRIANGLES, 0, 3);
-	  glDrawArrays(GL_TRIANGLES, 3, 6);
+
 	  //Reset the state
 	  glBindVertexArray(0);
 	  glUseProgram(0);
