@@ -21,7 +21,7 @@ ShaderProgram::ShaderProgram()
 
 	file.close();
 
-	std::ifstream file("../shaders/simple.frag");
+	file.open("../shaders/simple.frag");
 
 	if (!file.is_open())
 	{
@@ -106,7 +106,7 @@ ShaderProgram::ShaderProgram(std::string _vert, std::string _frag)
 
 	file.close();
 
-	std::ifstream file(_frag);
+	file.open(_frag);
 
 	if (!file.is_open())
 	{
@@ -183,11 +183,29 @@ void ShaderProgram::Draw(VertexArray* _vertexArray)
 }
 void ShaderProgram::SetUniform(std::string _uniform, glm::vec4 _value)
 {
-	//Slide 30
+	GLint uniformId = glGetUniformLocation(id, _uniform.c_str());
+
+	if (uniformId == -1)
+	{
+		throw std::exception();
+	}
+
+	glUseProgram(id);
+	glUniform4f(uniformId, _value.x, _value.y, _value.z, _value.w);
+	glUseProgram(0);
 }
 void ShaderProgram::SetUniform(std::string _uniform, float _value)
 {
+	GLint uniformId = glGetUniformLocation(id, _uniform.c_str());
 
+	if (uniformId == -1)
+	{
+		throw std::exception();
+	}
+
+	glUseProgram(id);
+	glUniform1f(uniformId, _value);
+	glUseProgram(0);
 }
 GLuint ShaderProgram::GetId()
 {
