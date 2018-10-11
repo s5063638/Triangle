@@ -10,19 +10,6 @@
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
-//Define triangle points
-const GLfloat positionsOne[] = {
-	0.0f, -0.5f, 0.0f,
-	-0.5f, 0.5f, 0.0f,
-	0.5f, 0.5f, 0.0f,
-};
-
-const GLfloat colors[] = {
-	0.4f, 0.0f, 0.4, 1.0f,
-	0.9f, 0.7f, 1.0f, 1.0f,
-	0.7f, 0.2f, 0.9f, 1.0f
-};
-
 const GLchar *vertexShaderSrc =
 	"attribute vec3 in_Position; "\
 	"attribute vec4 in_Color; "\
@@ -74,32 +61,14 @@ int main(int argc, char *argv[])
   colors->Add(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
   colors->Add(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
-  GLuint vaoId = 0;
+  VertexArray* shape = new VertexArray();
+  shape->SetBuffer("in_Position", positions);
+  shape->SetBuffer("in_Color", colors);
 
-  //Create a new VAO on the GPU and bind it
-  glGenVertexArrays(1, &vaoId);
-
-  if (!vaoId)
-  {
-	  throw std::exception();
-  }
-
-  glBindVertexArray(vaoId);
-
-  //Bind the position VBO, assign it to the position 0 on the bound VAO and flag it to be used
-  glBindBuffer(GL_ARRAY_BUFFER, positionsVboId);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void *)0);
-
-  glEnableVertexAttribArray(0);
-
-  //Reset the state
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
- 
-  //Create a new vertex shader, attach source code, compile it and check for errors.
   GLuint vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShaderId, 1, &vertexShaderSrc, NULL);
   glCompileShader(vertexShaderId);
+
   GLint success = 0;
   glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &success);
 
@@ -107,6 +76,19 @@ int main(int argc, char *argv[])
   {
 	  throw std::exception();
   }
+
+  //Bind the position VBO, assign it to the position 0 on the bound VAO and flag it to be used
+  glBindBuffer(GL_ARRAY_BUFFER, positions->GetId());
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void *)0);
+  glEnableVertexAttribArray(0);
+
+  //Bind the color VBO, assign it to position 1 on the bound VAO and flag it to be used
+  glBindBuffer(GL_ARRAY_BUFFER, colors->GetId());
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void *)0);
+  glEnableVertexAttribArray(1);
+
+  //Reset the state
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   //Create a new fragment shader, attach source code, compile it and
   //check for errors
@@ -172,8 +154,7 @@ int main(int argc, char *argv[])
 
 	  //Instruct OpenGL to use our shader program and our VAO
 	  glUseProgram(programId);
-	  //glUniform4f(colorUniformId, 0, 1, 0, 1); //Set color from uniform
-	  glBindVertexArray(vaoId);
+	  glBindVertexArray(shape->GetId());
 
 	  //Draw 3 vertices
 	  glDrawArrays(GL_TRIANGLES, 0, 3);

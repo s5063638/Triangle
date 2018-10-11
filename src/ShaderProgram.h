@@ -13,6 +13,8 @@ class ShaderProgram
 {
 private:
 	GLuint id;
+	std::string vertShader;
+	std::string fragShader;
 
 public:
 	ShaderProgram();
