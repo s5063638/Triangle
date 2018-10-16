@@ -4,6 +4,7 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 #include <string>
 
@@ -22,7 +23,7 @@ public:
 
 	void Draw(VertexArray* _vertexArray);
 
-	void SetUniform(std::string _uniform, glm::vec4 _value);
+	void SetUniform(std::string _uniform, glm::mat4 _value);
 	void SetUniform(std::string _uniform, float value);
 
 	GLuint GetId();
