@@ -20,7 +20,7 @@ void VertexArray::SetBuffer(std::string _attribute, VertexBuffer* _buffer)
 	{
 		buffers.at(0) = _buffer;
 	}
-	else if (_attribute == "in_Color")
+	else if (_attribute == "in_TexCoord")
 	{
 		buffers.at(1) = _buffer;
 	}

@@ -25,6 +25,7 @@ public:
 
 	void SetUniform(std::string _uniform, glm::mat4 _value);
 	void SetUniform(std::string _uniform, float value);
+	void SetUniform(std::string _uniform, int value);
 
 	GLuint GetId();
 };

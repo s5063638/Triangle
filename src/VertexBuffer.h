@@ -16,6 +16,7 @@ private:
 public:
 	VertexBuffer();
 
+	void Add(glm::vec2 _value);
 	void Add(glm::vec3 _value);
 	void Add(glm::vec4 _value);
 

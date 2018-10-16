@@ -3,6 +3,7 @@
 #include <exception>
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <stb_image/stb_image.h>
 
 #include "VertexBuffer.h"
 #include "VertexArray.h"
@@ -32,19 +33,54 @@ int main(int argc, char *argv[])
 	  throw std::exception();
   }
 
+  //Load-In Texture
+  int w = 0;
+  int h = 0;
+  int channels = 0;
+
+  unsigned char *data = stbi_load("rock.jpg", &w, &h, &channels, 4);
+
+  if (!data)
+  {
+	  throw std::exception();
+  }
+
+  //Create and bind texture
+  GLuint textureId = 0;
+  glGenTextures(1, &textureId);
+
+  if (!textureId)
+  {
+	  throw std::exception();
+  }
+
+  glBindTexture(GL_TEXTURE_2D, textureId);
+
+  //Upload the image data to the bound texture unit in the GPU
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+  //Free the loaded data because we now have a copy on the GPU
+  free(data);
+
+  //Generate Mipmap so the texture can be mapped correctly
+  glGenerateMipmap(GL_TEXTURE_2D);
+  
+  //Unbind the texture because we are done operating on it
+  glBindTexture(GL_TEXTURE_2D, 0);
+
   VertexBuffer* positions = new VertexBuffer();
-  positions->Add(glm::vec3(-0.5f, 0.5f, 0.0f));
+  positions->Add(glm::vec3(0.0f, 0.5f, 0.0f));
   positions->Add(glm::vec3(-0.5f, -0.5f, 0.0f));
   positions->Add(glm::vec3(0.5f, -0.5f, 0.0f));
 
-  VertexBuffer* colors = new VertexBuffer();
-  colors->Add(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-  colors->Add(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-  colors->Add(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+  VertexBuffer* texCoords = new VertexBuffer();
+  texCoords->Add(glm::vec2(0.5f, 0.0f));
+  texCoords->Add(glm::vec2(0.0f, 1.0f));
+  texCoords->Add(glm::vec2(1.0f, 1.0f));
 
   VertexArray* shape = new VertexArray();
   shape->SetBuffer("in_Position", positions);
-  shape->SetBuffer("in_Color", colors);
+  shape->SetBuffer("in_TexCoord", texCoords);
 
   ShaderProgram* shaderProgram = new ShaderProgram("../shaders/simple.vert", "../shaders/simple.frag");
   
@@ -77,6 +113,11 @@ int main(int argc, char *argv[])
 
 	shaderProgram->SetUniform("in_Model", model);
 
+	//Set Texture
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	shaderProgram->SetUniform("in_Texture", 1);
+
 	shaderProgram->Draw(shape);
 
 	//Draw with orthographic projection matrix
@@ -89,6 +130,11 @@ int main(int argc, char *argv[])
 
 	shaderProgram->SetUniform("in_Model", model);
 
+	//Set Texture
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	shaderProgram->SetUniform("in_Texture", 1);
+	
 	shaderProgram->Draw(shape);
 
 	angle += 1.0f;
