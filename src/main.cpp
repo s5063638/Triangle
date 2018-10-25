@@ -10,7 +10,7 @@
 #include "ShaderProgram.h"
 #include "Player.h"
 
-#include "glm/ext.hpp"
+
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -90,13 +90,14 @@ int main(int argc, char *argv[])
   float angle = 0.0f;
   glm::vec3 cameraPos = { 0.0f, 0.0f, 0.0f };
   glm::vec3 cameraRot = { 0.0f, 0.0f, 0.0f };
+  Player player;
 
   bool quit = false;
+  float lastTime = SDL_GetTicks();
 
   while(!quit)
   {
     SDL_Event event = {0};
-	//Player player;
 
     while(SDL_PollEvent(&event))
     {
@@ -104,41 +105,26 @@ int main(int argc, char *argv[])
 		{
 			quit = true;
 		}
-		else if (event.type == SDL_KEYDOWN)
-		{
-			// fwd
-			glm::mat4 t(1.0f);
-
-			t = glm::rotate(t, glm::radians(cameraRot.y), glm::vec3(0, 1, 0));
-
-			t = glm::translate(t, glm::vec3(0.0f, 0.0f, 1.0f));
-
-			glm::vec3 forward = t * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-			forward = glm::normalize(forward);
-
-			glm::vec3 right = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), forward);
-
-			right = glm::normalize(right);
-
-			switch (event.key.keysym.sym)
-			{
-			case SDLK_w:
-				cameraPos -= forward;
-				break;
-			case SDLK_s:
-				cameraPos += forward;
-				break;
-			case SDLK_a:
-				cameraPos -= right;
-				break;
-			case SDLK_d:
-				cameraPos += right;
-				break;
-			}
-		
-		}
     }
+
+	const Uint8 *state = SDL_GetKeyboardState(NULL);
+
+	if (state[SDL_SCANCODE_W])
+	{
+		player.Move(FORWARD);
+	}
+	if (state[SDL_SCANCODE_S])
+	{
+		player.Move(BACK);
+	}
+	if (state[SDL_SCANCODE_A])
+	{
+		player.Move(LEFT);
+	}
+	if (state[SDL_SCANCODE_D])
+	{
+		player.Move(RIGHT);
+	}
 
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -149,7 +135,7 @@ int main(int argc, char *argv[])
 
 	//Create camera
 	glm::mat4 model(1.0f);
-	model = glm::translate(model, cameraPos);
+	model = glm::translate(model, player.GetPos());
 	//model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0)); //Rotate Camera
 	shaderProgram->SetUniform("in_View", glm::inverse(model));
 
@@ -183,23 +169,13 @@ int main(int argc, char *argv[])
 	
 	shaderProgram->Draw(shape);
 
-	//if (keys.at(SDLK_LEFT) == true)
-	//{
-
-	//}
-	//if (keys.at(SDLK_RIGHT) == true)
-	//{
-	//	
-	//}
-	//if (keys.at(SDLK_UP) == true)
-	//{
-	//}
-	//if (keys.at(SDLK_DOWN) == true)
-	//{
-	//	
-	//}
-
 	angle += 1.0f;
+
+	//Delta time
+	float time = SDL_GetTicks();
+	float diff = time - lastTime;
+	float deltaTime = diff / 1000.0f;
+	lastTime = time;
 
 	SDL_GL_SwapWindow(window);
   }
