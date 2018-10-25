@@ -8,6 +8,9 @@
 #include "VertexBuffer.h"
 #include "VertexArray.h"
 #include "ShaderProgram.h"
+#include "Player.h"
+
+#include "glm/ext.hpp"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -85,18 +88,55 @@ int main(int argc, char *argv[])
   ShaderProgram* shaderProgram = new ShaderProgram("../shaders/simple.vert", "../shaders/simple.frag");
   
   float angle = 0.0f;
+  glm::vec3 cameraPos = { 0.0f, 0.0f, 0.0f };
+  glm::vec3 cameraRot = { 0.0f, 0.0f, 0.0f };
 
   bool quit = false;
 
   while(!quit)
   {
     SDL_Event event = {0};
+	//Player player;
 
     while(SDL_PollEvent(&event))
     {
 		if (event.type == SDL_QUIT)
 		{
 			quit = true;
+		}
+		else if (event.type == SDL_KEYDOWN)
+		{
+			// fwd
+			glm::mat4 t(1.0f);
+
+			t = glm::rotate(t, glm::radians(cameraRot.y), glm::vec3(0, 1, 0));
+
+			t = glm::translate(t, glm::vec3(0.0f, 0.0f, 1.0f));
+
+			glm::vec3 forward = t * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+			forward = glm::normalize(forward);
+
+			glm::vec3 right = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), forward);
+
+			right = glm::normalize(right);
+
+			switch (event.key.keysym.sym)
+			{
+			case SDLK_w:
+				cameraPos -= forward;
+				break;
+			case SDLK_s:
+				cameraPos += forward;
+				break;
+			case SDLK_a:
+				cameraPos -= right;
+				break;
+			case SDLK_d:
+				cameraPos += right;
+				break;
+			}
+		
 		}
     }
 
@@ -107,10 +147,15 @@ int main(int argc, char *argv[])
 	shaderProgram->SetUniform("in_Projection", glm::perspective(glm::radians(45.0f),
 		(float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.1f, 100.0f));
 
+	//Create camera
 	glm::mat4 model(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));
-	model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0));
+	model = glm::translate(model, cameraPos);
+	//model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0)); //Rotate Camera
+	shaderProgram->SetUniform("in_View", glm::inverse(model));
 
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));
+	//model = glm::rotate(model, glm::radians(angle), glm::vec3(0, 1, 0)); //Rotate Main Model
 	shaderProgram->SetUniform("in_Model", model);
 
 	//Set Texture
@@ -121,14 +166,15 @@ int main(int argc, char *argv[])
 	shaderProgram->Draw(shape);
 
 	//Draw with orthographic projection matrix
-	model = glm::mat4(1.0f);
 
 	shaderProgram->SetUniform("in_Projection", glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT, 0.0f, 1.0f));
 
+	model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(100, WINDOW_HEIGHT - 100, 0));
 	model = glm::scale(model, glm::vec3(100, 100, 1));
 
 	shaderProgram->SetUniform("in_Model", model);
+	shaderProgram->SetUniform("in_View", glm::mat4(1.0f));
 
 	//Set Texture
 	glActiveTexture(GL_TEXTURE0 + 1);
@@ -136,6 +182,22 @@ int main(int argc, char *argv[])
 	shaderProgram->SetUniform("in_Texture", 1);
 	
 	shaderProgram->Draw(shape);
+
+	//if (keys.at(SDLK_LEFT) == true)
+	//{
+
+	//}
+	//if (keys.at(SDLK_RIGHT) == true)
+	//{
+	//	
+	//}
+	//if (keys.at(SDLK_UP) == true)
+	//{
+	//}
+	//if (keys.at(SDLK_DOWN) == true)
+	//{
+	//	
+	//}
 
 	angle += 1.0f;
 
