@@ -18,26 +18,26 @@ Player::Player()
 	right = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), forward);
 
 	right = glm::normalize(right);
-}
-Player::~Player() 
-{
 
+	//Change forward vector to allow up and down movement
+	//forward = glm::cross(glm::vec3(1.0f, 0.0f, 0.0f), forward);
 }
-void Player::Move(Direction _dir)
+Player::~Player() {}
+void Player::Move(Direction _dir, float _deltaT)
 {
 	switch (_dir)
 	{
 	case FORWARD:
-		position -= forward * 0.25f;
+		position -= forward * 5.0f * _deltaT;
 		break;
 	case BACK:
-		position += forward * 0.25f;
+		position += forward * 5.0f * _deltaT;
 		break;
 	case LEFT:
-		position -= right * 0.25f;
+		position -= right * 5.0f * _deltaT;
 		break;
 	case RIGHT:
-		position += right * 0.25f;
+		position += right * 5.0f * _deltaT;
 		break;
 	}
 }

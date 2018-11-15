@@ -97,6 +97,11 @@ int main(int argc, char *argv[])
 
   while(!quit)
   {
+	//Delta time
+	float time = SDL_GetTicks();
+	float diff = time - lastTime;
+	float deltaTime = diff / 1000.0f;
+
     SDL_Event event = {0};
 
     while(SDL_PollEvent(&event))
@@ -111,19 +116,19 @@ int main(int argc, char *argv[])
 
 	if (state[SDL_SCANCODE_W])
 	{
-		player.Move(FORWARD);
+		player.Move(FORWARD, deltaTime);
 	}
 	if (state[SDL_SCANCODE_S])
 	{
-		player.Move(BACK);
+		player.Move(BACK, deltaTime);
 	}
 	if (state[SDL_SCANCODE_A])
 	{
-		player.Move(LEFT);
+		player.Move(LEFT, deltaTime);
 	}
 	if (state[SDL_SCANCODE_D])
 	{
-		player.Move(RIGHT);
+		player.Move(RIGHT, deltaTime);
 	}
 
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -171,10 +176,7 @@ int main(int argc, char *argv[])
 
 	angle += 1.0f;
 
-	//Delta time
-	float time = SDL_GetTicks();
-	float diff = time - lastTime;
-	float deltaTime = diff / 1000.0f;
+	//Update Last Time
 	lastTime = time;
 
 	SDL_GL_SwapWindow(window);

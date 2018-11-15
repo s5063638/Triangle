@@ -25,7 +25,7 @@ private:
 public:
 	Player();
 	~Player();
-	void Move(Direction _dir);
+	void Move(Direction _dir, float _deltaT);
 	glm::vec3 GetPos();
 };
 
